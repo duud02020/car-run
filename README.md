@@ -1,4 +1,4 @@
-# Neon Runner 🚀
+# Car Run 🏎️💨
 
 Jogo estilo *Endless Runner* com estética Cyberpunk/Neon, desenvolvido com HTML5 Canvas e Vanilla JavaScript.
 
