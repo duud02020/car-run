@@ -67,7 +67,7 @@ function jump() {
 }
 
 window.addEventListener('keydown', (e) => {
-    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w') {
+    if (e.key === ' ') {
         jump();
         e.preventDefault();
     }
