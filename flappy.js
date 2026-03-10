@@ -171,7 +171,10 @@ function spawnEntities() {
     if (frameCount % 100 === 0) {
         const pipe = new PipeObstacle();
         obstacles.push(pipe);
-        targetCoins.push(new Coin(pipe.x, pipe.topHeight + pipe.gap/2));
+        // Spawn moeda com 30% de chance para diminuir a quantidade
+        if (Math.random() < 0.3) {
+            targetCoins.push(new Coin(pipe.x, pipe.topHeight + pipe.gap / 2));
+        }
     }
 }
 
