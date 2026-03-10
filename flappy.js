@@ -40,7 +40,7 @@ const skins = [
         color: '#00f2ff', 
         price: 0, 
         owned: true, 
-        desc: 'Padrão: Voo equilibrado.',
+        desc: 'Voo padrão: Equilíbrio perfeito entre peso e força.',
         gravityMult: 1, 
         jumpMult: 1,
         coinLuck: 0.3
@@ -51,7 +51,7 @@ const skins = [
         color: '#ff007f', 
         price: 150, 
         owned: false, 
-        desc: 'Ágil: Cai mais devagar.',
+        desc: 'Melhoria: [GRAVIDADE -20%] Mais leve, cai mais devagar.',
         gravityMult: 0.8, 
         jumpMult: 1,
         coinLuck: 0.3
@@ -62,7 +62,7 @@ const skins = [
         color: '#aaff00', 
         price: 350, 
         owned: false, 
-        desc: 'Forte: Pulo mais alto.',
+        desc: 'Melhoria: [PULO +30%] Impulso muito mais potente.',
         gravityMult: 1.1, 
         jumpMult: 1.3,
         coinLuck: 0.3
@@ -73,7 +73,7 @@ const skins = [
         color: '#ffcc00', 
         price: 700, 
         owned: false, 
-        desc: 'Sorte: Mais moedas aparecem.',
+        desc: 'Melhoria: [SORTE +100%] Dobro de chance de moedas.',
         gravityMult: 1, 
         jumpMult: 1,
         coinLuck: 0.6
@@ -84,7 +84,7 @@ const skins = [
         color: '#bc13fe', 
         price: 1500, 
         owned: false, 
-        desc: 'Vácuo: Menos gravidade e mais pulo.',
+        desc: 'Melhoria: [HYBRID] Gravidade baixa e Pulo alto.',
         gravityMult: 0.7, 
         jumpMult: 1.2,
         coinLuck: 0.4
