@@ -108,18 +108,6 @@ class PipeObstacle {
     }
 }
 
-class Coin {
-    constructor(x, y) { this.x = x + 40; this.y = y; this.size = 25; }
-    update() { this.x -= speed; }
-    draw() {
-        ctx.save();
-        ctx.fillStyle = '#f8ff00'; ctx.shadowBlur = 20; ctx.shadowColor = '#f8ff00';
-        ctx.beginPath(); ctx.arc(this.x, this.y, this.size/2, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#000'; ctx.font = 'bold 12px Orbitron'; ctx.textAlign = 'center'; ctx.fillText('$', this.x, this.y+4);
-        ctx.restore();
-    }
-}
-
 function startGame(mode = 'free', levelIdx = 0) {
     isPlaying = true; isLevelMode = mode === 'level'; currentLevelIndex = levelIdx;
     score = 0; frameCount = 0; coinsInMatch = 0; obstacles = []; targetCoins = [];
@@ -132,11 +120,38 @@ function startGame(mode = 'free', levelIdx = 0) {
     if (!animationId) gameLoop();
 }
 
+function drawPlayer() {
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    const rotation = Math.min(Math.max(player.velocity * 0.06, -0.6), 0.8);
+    ctx.rotate(rotation);
+    ctx.shadowBlur = 20; ctx.shadowColor = player.color;
+
+    // Asas
+    const wingFlap = Math.sin(frameCount * 0.2) * 12;
+    ctx.fillStyle = player.color;
+    ctx.beginPath(); ctx.ellipse(-12, wingFlap, 15, 8, 0, 0, Math.PI * 2); ctx.fill();
+
+    // Corpo
+    ctx.fillStyle = 'white';
+    ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = player.color; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.stroke();
+
+    // Bico
+    ctx.fillStyle = '#ffcc00';
+    ctx.beginPath(); ctx.moveTo(15, -2); ctx.lineTo(28, 0); ctx.lineTo(15, 2); ctx.fill();
+
+    // Olho
+    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(8, -6, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'black'; ctx.beginPath(); ctx.arc(10, -6, 2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+}
+
 function gameLoop() {
     if (!isPlaying) { animationId = null; return; }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Background Grid
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.beginPath();
     for(let i=0; i<canvas.width; i+=50) { ctx.moveTo(i,0); ctx.lineTo(i, canvas.height); }
@@ -145,14 +160,7 @@ function gameLoop() {
     player.velocity += currentGravity; player.y += player.velocity;
     if (player.y > canvas.height || player.y < 0) return gameOver();
 
-    // Draw Player
-    ctx.save();
-    ctx.translate(player.x, player.y);
-    ctx.rotate(player.velocity * 0.05);
-    ctx.fillStyle = player.color; ctx.shadowBlur = 20; ctx.shadowColor = player.color;
-    ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(10, -5, 4, 0, Math.PI*2); ctx.fill();
-    ctx.restore();
+    drawPlayer();
 
     if (frameCount % 100 === 0) obstacles.push(new PipeObstacle());
 
