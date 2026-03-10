@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Run | Neon Experience</title>
+    <title>Car Run | Flappy Edition</title>
     <link rel="stylesheet" href="./style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,22 +26,22 @@
             </div>
 
             <div id="start-screen" class="overlay">
-                <h1>CAR RUN</h1>
-                <p>Acelere, desvie dos obstáculos e domine a estrada digital.</p>
-                <button id="start-button">INICIAR SISTEMA</button>
+                <h1>FLAPPY CAR</h1>
+                <p>Use ESPAÇO ou CLIQUE para voar entre os canos neon!</p>
+                <button id="start-button">INICIAR VOO</button>
                 <div class="controls-hint">
-                    <span>SETAS / WASD</span>
-                    <span>TOQUE (MOBILE)</span>
+                    <span>ESPAÇO / CLIQUE</span>
+                    <span>W / SETA CIMA</span>
                 </div>
             </div>
 
             <div id="game-over-screen" class="overlay hidden">
-                <h2>CONEXÃO INTERROMPIDA</h2>
-                <div class="final-score">SCORE FINAL: <span id="final-score-value">0</span></div>
-                <div class="coins-earned">MOEDAS COLETADAS: <span id="coins-earned-value">0</span></div>
+                <h2>BATEU!</h2>
+                <div class="final-score">PONTUAÇÃO: <span id="final-score-value">0</span></div>
+                <div class="coins-earned">MOEDAS: <span id="coins-earned-value">0</span></div>
                 <div class="button-group">
-                    <button id="restart-button">RECONECTAR</button>
-                    <button id="shop-button">GARAGEM / LOJA</button>
+                    <button id="restart-button">TENTAR DE NOVO</button>
+                    <button id="shop-button">GARAGEM</button>
                 </div>
             </div>
 
@@ -49,12 +49,13 @@
                 <h2>GARAGEM NEON</h2>
                 <div class="current-coins">SUAS MOEDAS: <span id="shop-coin-value">0</span></div>
                 <div id="skin-list">
-                    <!-- Skins serão geradas via JS -->
+                    <!-- Skins via JS -->
                 </div>
                 <button id="close-shop">VOLTAR</button>
             </div>
         </div>
     </div>
-    <script src="./game.js?v=2"></script>
+    <!-- Alterado para flappy.js para forçar o carregamento do novo código -->
+    <script src="./flappy.js"></script>
 </body>
 </html>
