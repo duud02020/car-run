@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Runner | Cyberpunk Experience</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Outfit:wght@300;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui-layer">
+            <div id="score-board">
+                <span class="label">PONTOS</span>
+                <span id="score-value">0000</span>
+            </div>
+
+            <div id="start-screen" class="overlay">
+                <h1>NEON RUNNER</h1>
+                <p>Desvie dos obstáculos e sobreviva no fluxo digital.</p>
+                <button id="start-button">INICIAR SISTEMA</button>
+                <div class="controls-hint">
+                    <span>SETAS / WASD</span>
+                    <span>TOQUE (MOBILE)</span>
+                </div>
+            </div>
+
+            <div id="game-over-screen" class="overlay hidden">
+                <h2>CONEXÃO INTERROMPIDA</h2>
+                <div class="final-score">SCORE FINAL: <span id="final-score-value">0</span></div>
+                <button id="restart-button">RECONECTAR</button>
+            </div>
+        </div>
+    </div>
+    <script src="./game.js"></script>
+</body>
+</html>

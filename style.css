@@ -1,0 +1,166 @@
+:root {
+    --bg-color: #050505;
+    --neon-pink: #ff007f;
+    --neon-blue: #00f2ff;
+    --neon-yellow: #f8ff00;
+    --text-glow: 0 0 10px rgba(255, 255, 255, 0.5);
+    --panel-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    max-width: 1200px;
+    max-height: 800px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+    background: radial-gradient(circle at center, #111 0%, #000 100%);
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#ui-layer * {
+    pointer-events: auto;
+}
+
+#score-board {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--panel-bg);
+    padding: 10px 20px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+#score-board .label {
+    font-size: 0.7rem;
+    color: var(--neon-blue);
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+#score-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    color: white;
+    text-shadow: 0 0 10px var(--neon-blue);
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 10;
+    transition: opacity 0.5s ease;
+}
+
+.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+h1, h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 4rem;
+    margin-bottom: 10px;
+    background: linear-gradient(to bottom, #fff 40%, var(--neon-blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.6));
+}
+
+p {
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 40px;
+}
+
+button {
+    background: transparent;
+    border: 2px solid var(--neon-pink);
+    color: white;
+    padding: 15px 40px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    text-shadow: 0 0 5px var(--neon-pink);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+}
+
+button:hover {
+    background: var(--neon-pink);
+    box-shadow: 0 0 30px rgba(255, 0, 127, 0.8);
+    transform: scale(1.05);
+}
+
+.controls-hint {
+    margin-top: 40px;
+    display: flex;
+    gap: 20px;
+    font-size: 0.8rem;
+    color: var(--neon-blue);
+    opacity: 0.6;
+}
+
+.controls-hint span {
+    border: 1px solid var(--neon-blue);
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.final-score {
+    margin: 20px 0;
+    font-size: 2rem;
+    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-blue);
+}
