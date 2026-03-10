@@ -115,6 +115,7 @@ h1, h2 {
     margin-bottom: 10px;
     background: linear-gradient(to bottom, #fff 40%, var(--neon-blue) 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.6));
 }
@@ -226,4 +227,42 @@ button:hover {
     border-color: #555;
     color: #555;
     cursor: default;
+}
+
+#level-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 30px 0;
+}
+
+.level-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid var(--neon-blue);
+    padding: 20px;
+    border-radius: 10px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.level-item:hover {
+    background: var(--neon-blue);
+    box-shadow: 0 0 20px var(--neon-blue);
+    color: #000;
+}
+
+.level-item.locked {
+    border-color: #333;
+    color: #333;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+#level-win-screen h2 {
+    filter: drop-shadow(0 0 15px var(--neon-yellow));
 }

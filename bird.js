@@ -7,16 +7,27 @@ const coinsEarnedElement = document.getElementById('coins-earned-value');
 const startScreen = document.getElementById('start-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const shopScreen = document.getElementById('shop-screen');
+const levelsScreen = document.getElementById('levels-screen');
+const levelWinScreen = document.getElementById('level-win-screen');
 const startButton = document.getElementById('start-button');
+const levelsButton = document.getElementById('levels-button');
 const restartButton = document.getElementById('restart-button');
 const shopButton = document.getElementById('shop-button');
 const homeShopButton = document.getElementById('home-shop-button');
 const closeShopButton = document.getElementById('close-shop');
+const closeLevelsButton = document.getElementById('close-levels');
 const skinListContainer = document.getElementById('skin-list');
+const levelListContainer = document.getElementById('level-list');
 const shopCoinValue = document.getElementById('shop-coin-value');
+const winScoreValue = document.getElementById('win-score-value');
+const winCoinsValue = document.getElementById('win-coins-value');
+const nextLevelButton = document.getElementById('next-level-button');
+const winHomeButton = document.getElementById('win-home-button');
 
 // Game State
 let isPlaying = false;
+let isLevelMode = false;
+let currentLevelIndex = 0;
 let score = 0;
 let coins = parseInt(localStorage.getItem('carRunCoins')) || 0;
 let coinsInMatch = 0;
@@ -33,63 +44,24 @@ const baseJumpForce = -7;
 let currentGravity = baseGravity;
 let currentJumpForce = baseJumpForce;
 
-// Skins & Shop (Bird Edition with Advantages) - PREÇOS ATUALIZADOS (MAX 210)
+// Level Data
+const levels = [
+    { name: 'Nível 1', target: 5, pipeSpeed: 4, gap: 250, reward: 50 },
+    { name: 'Nível 2', target: 10, pipeSpeed: 4.5, gap: 230, reward: 100 },
+    { name: 'Nível 3', target: 15, pipeSpeed: 5, gap: 210, reward: 150 },
+    { name: 'Nível 4', target: 20, pipeSpeed: 5.5, gap: 190, reward: 200 },
+    { name: 'Nível 5', target: 30, pipeSpeed: 6, gap: 170, reward: 500 }
+];
+
+let unlockedLevel = parseInt(localStorage.getItem('carRunUnlockedLevel')) || 0;
+
+// Skins & Shop
 const skins = [
-    { 
-        id: 'default', 
-        name: 'NEON CHICK', 
-        color: '#00f2ff', 
-        price: 0, 
-        owned: true, 
-        desc: 'Voo padrão: Equilíbrio perfeito entre peso e força.',
-        gravityMult: 1, 
-        jumpMult: 1,
-        coinLuck: 0.3
-    },
-    { 
-        id: 'agile', 
-        name: 'FAST SWIFT', 
-        color: '#ff007f', 
-        price: 30, 
-        owned: false, 
-        desc: 'Melhoria: [GRAVIDADE -20%] Mais leve, cai mais devagar.',
-        gravityMult: 0.8, 
-        jumpMult: 1,
-        coinLuck: 0.3
-    },
-    { 
-        id: 'heavy', 
-        name: 'POWER OWL', 
-        color: '#aaff00', 
-        price: 80, 
-        owned: false, 
-        desc: 'Melhoria: [PULO +30%] Impulso muito mais potente.',
-        gravityMult: 1.1, 
-        jumpMult: 1.3,
-        coinLuck: 0.3
-    },
-    { 
-        id: 'lucky', 
-        name: 'GOLDEN PHOENIX', 
-        color: '#ffcc00', 
-        price: 150, 
-        owned: false, 
-        desc: 'Melhoria: [SORTE +100%] Dobro de chance de moedas.',
-        gravityMult: 1, 
-        jumpMult: 1,
-        coinLuck: 0.6
-    },
-    { 
-        id: 'ghost', 
-        name: 'VOID RAVEN', 
-        color: '#bc13fe', 
-        price: 210, 
-        owned: false, 
-        desc: 'Melhoria: [HYBRID] Gravidade baixa e Pulo alto.',
-        gravityMult: 0.7, 
-        jumpMult: 1.2,
-        coinLuck: 0.4
-    }
+    { id: 'default', name: 'NEON CHICK', color: '#00f2ff', price: 0, owned: true, desc: 'Voo padrão: Equilíbrio perfeito.', gravityMult: 1, jumpMult: 1, coinLuck: 0.3 },
+    { id: 'agile', name: 'FAST SWIFT', color: '#ff007f', price: 30, owned: false, desc: 'Melhoria: [GRAVIDADE -20%]', gravityMult: 0.8, jumpMult: 1, coinLuck: 0.3 },
+    { id: 'heavy', name: 'POWER OWL', color: '#aaff00', price: 80, owned: false, desc: 'Melhoria: [PULO +30%]', gravityMult: 1.1, jumpMult: 1.3, coinLuck: 0.3 },
+    { id: 'lucky', name: 'GOLDEN PHOENIX', color: '#ffcc00', price: 150, owned: false, desc: 'Melhoria: [SORTE +100%]', gravityMult: 1, jumpMult: 1, coinLuck: 0.6 },
+    { id: 'ghost', name: 'VOID RAVEN', color: '#bc13fe', price: 210, owned: false, desc: 'Melhoria: [HYBRID]', gravityMult: 0.7, jumpMult: 1.2, coinLuck: 0.4 }
 ];
 
 let ownedSkins = JSON.parse(localStorage.getItem('carRunOwnedSkins')) || ['default'];
@@ -136,7 +108,7 @@ window.addEventListener('keydown', (e) => {
 class PipeObstacle {
     constructor() {
         this.width = 90;
-        this.gap = 210;
+        this.gap = isLevelMode ? levels[currentLevelIndex].gap : 210;
         this.x = canvas.width;
         const minH = 60;
         const maxH = canvas.height - this.gap - minH;
@@ -211,31 +183,16 @@ function drawPlayer() {
     ctx.save();
     ctx.translate(player.x, player.y);
     ctx.rotate(Math.min(Math.max(player.velocity * 0.06, -0.6), 0.8));
-    
-    // Asas
     const wingY = Math.sin(frameCount * 0.2) * 10;
     ctx.fillStyle = player.color;
-    ctx.beginPath();
-    ctx.ellipse(-10, wingY, 15, 8, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Corpo do Pássaro
+    ctx.beginPath(); ctx.ellipse(-10, wingY, 15, 8, 0, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 20; ctx.shadowColor = player.color;
     ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.arc(0, 0, player.size/2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Bico e Olho
+    ctx.beginPath(); ctx.arc(0, 0, player.size/2.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#ffcc00';
-    ctx.beginPath();
-    ctx.moveTo(12, -2); ctx.lineTo(22, 0); ctx.lineTo(12, 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.moveTo(12, -2); ctx.lineTo(22, 0); ctx.lineTo(12, 2); ctx.fill();
     ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.arc(5, -5, 2, 0, Math.PI * 2);
-    ctx.fill();
-    
+    ctx.beginPath(); ctx.arc(5, -5, 2, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
 }
 
@@ -265,6 +222,11 @@ function gameLoop() {
         if (!obs.passed && obs.x + obs.width < player.x) {
             obs.passed = true; score += 1;
             scoreElement.innerText = score.toString().padStart(4, '0');
+            
+            // Check Level Win
+            if (isLevelMode && score >= levels[currentLevelIndex].target) {
+                levelWin();
+            }
         }
         if (obs.x + obs.width < 0) obstacles.splice(index, 1);
     });
@@ -283,13 +245,23 @@ function gameLoop() {
     frameCount++; animationId = requestAnimationFrame(gameLoop);
 }
 
-function startGame() {
-    isPlaying = true; score = 0; frameCount = 0; coinsInMatch = 0;
+function startGame(mode = 'free', levelIdx = 0) {
+    isPlaying = true;
+    isLevelMode = mode === 'level';
+    currentLevelIndex = levelIdx;
+    score = 0; frameCount = 0; coinsInMatch = 0;
     obstacles = []; targetCoins = []; particles = [];
     player.y = canvas.height / 2; player.velocity = 0;
+    
+    speed = isLevelMode ? levels[currentLevelIndex].pipeSpeed : 4;
+    
     applySkinStats(activeSkinId); 
     scoreElement.innerText = '0000';
-    startScreen.classList.add('hidden'); gameOverScreen.classList.add('hidden'); shopScreen.classList.add('hidden');
+    startScreen.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+    shopScreen.classList.add('hidden');
+    levelsScreen.classList.add('hidden');
+    levelWinScreen.classList.add('hidden');
     resize(); gameLoop();
 }
 
@@ -304,6 +276,24 @@ function gameOver() {
     }, 500);
 }
 
+function levelWin() {
+    isPlaying = false;
+    cancelAnimationFrame(animationId);
+    const reward = levels[currentLevelIndex].reward;
+    coins += reward;
+    localStorage.setItem('carRunCoins', coins);
+    if (currentLevelIndex === unlockedLevel) {
+        unlockedLevel++;
+        localStorage.setItem('carRunUnlockedLevel', unlockedLevel);
+    }
+    coinElement.innerText = coins;
+    setTimeout(() => {
+        winScoreValue.innerText = score;
+        winCoinsValue.innerText = reward;
+        levelWinScreen.classList.remove('hidden');
+    }, 300);
+}
+
 function updateShop() {
     shopCoinValue.innerText = coins;
     skinListContainer.innerHTML = '';
@@ -315,7 +305,7 @@ function updateShop() {
         item.innerHTML = `
             <div class="skin-preview" style="background: ${skin.color}; border: 2px solid white; border-radius: 50%;"></div>
             <span style="font-weight: bold; color: #fff;">${skin.name}</span>
-            <span style="font-size: 0.7rem; color: #aaa; margin: 5px 0;">${skin.desc}</span>
+            <span style="font-size: 0.7rem; color: #aaa;">${skin.desc}</span>
             <span class="skin-price">${isOwned ? 'ADQUIRIDO' : skin.price + ' Moedas'}</span>
             <button class="buy-button ${isOwned ? 'owned' : ''}" onclick="processSkinAction('${skin.id}')">
                 ${isActive ? 'ATIVO' : (isOwned ? 'USAR' : 'COMPRAR')}
@@ -325,42 +315,44 @@ function updateShop() {
     });
 }
 
+function updateLevels() {
+    levelListContainer.innerHTML = '';
+    levels.forEach((lvl, i) => {
+        const isLocked = i > unlockedLevel;
+        const item = document.createElement('div');
+        item.className = `level-item ${isLocked ? 'locked' : ''}`;
+        item.innerHTML = `
+            <span>${lvl.name}</span>
+            <span style="font-size: 0.7rem;">Meta: ${lvl.target} canos</span>
+        `;
+        if (!isLocked) item.onclick = () => startGame('level', i);
+        levelListContainer.appendChild(item);
+    });
+}
+
 window.processSkinAction = function(skinId) {
     const skin = skins.find(s => s.id === skinId);
     if (!skin) return;
     if (ownedSkins.includes(skinId)) {
-        activeSkinId = skinId;
-        applySkinStats(skinId);
-        localStorage.setItem('carRunActiveSkin', skinId);
-        updateShop();
+        activeSkinId = skinId; applySkinStats(skinId);
+        localStorage.setItem('carRunActiveSkin', skinId); updateShop();
     } else if (coins >= skin.price) {
-        coins -= skin.price;
-        ownedSkins.push(skinId);
+        coins -= skin.price; ownedSkins.push(skinId);
         localStorage.setItem('carRunCoins', coins);
         localStorage.setItem('carRunOwnedSkins', JSON.stringify(ownedSkins));
-        coinElement.innerText = coins;
-        updateShop();
+        coinElement.innerText = coins; updateShop();
     } else { alert('Moedas insuficientes!'); }
 };
 
-startButton.addEventListener('click', startGame);
-restartButton.addEventListener('click', startGame);
+startButton.addEventListener('click', () => startGame('free'));
+restartButton.addEventListener('click', () => isLevelMode ? startGame('level', currentLevelIndex) : startGame('free'));
+levelsButton.addEventListener('click', () => { startScreen.classList.add('hidden'); levelsScreen.classList.remove('hidden'); updateLevels(); });
+closeLevelsButton.addEventListener('click', () => { levelsScreen.classList.add('hidden'); startScreen.classList.remove('hidden'); });
 
-const openShop = () => {
-    startScreen.classList.add('hidden');
-    gameOverScreen.classList.add('hidden');
-    shopScreen.classList.remove('hidden');
-    updateShop();
-};
-
+const openShop = () => { startScreen.classList.add('hidden'); gameOverScreen.classList.add('hidden'); shopScreen.classList.remove('hidden'); updateShop(); };
 shopButton.addEventListener('click', openShop);
 homeShopButton.addEventListener('click', openShop);
+closeShopButton.addEventListener('click', () => { shopScreen.classList.add('hidden'); if (!isPlaying) startScreen.classList.remove('hidden'); else gameOverScreen.classList.remove('hidden'); });
 
-closeShopButton.addEventListener('click', () => {
-    shopScreen.classList.add('hidden');
-    if (!isPlaying) {
-        startScreen.classList.remove('hidden');
-    } else {
-        gameOverScreen.classList.remove('hidden');
-    }
-});
+nextLevelButton.addEventListener('click', () => { if (currentLevelIndex + 1 < levels.length) startGame('level', currentLevelIndex + 1); else alert('Parabéns! Você completou todos os níveis!'); });
+winHomeButton.addEventListener('click', () => { levelWinScreen.classList.add('hidden'); startScreen.classList.remove('hidden'); });

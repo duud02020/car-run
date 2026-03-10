@@ -29,7 +29,8 @@
                 <h1>VAMOS VOAR</h1>
                 <p>Use ESPAÇO ou CLIQUE para voar entre os canos neon!</p>
                 <div class="button-group">
-                    <button id="start-button">INICIAR VOO</button>
+                    <button id="start-button">VOO LIVRE</button>
+                    <button id="levels-button">NÍVEIS</button>
                     <button id="home-shop-button">AVIÁRIO</button>
                 </div>
                 <div class="controls-hint">
@@ -56,9 +57,26 @@
                 </div>
                 <button id="close-shop">VOLTAR</button>
             </div>
+
+            <div id="levels-screen" class="overlay hidden">
+                <h2>MAPA DE VOO</h2>
+                <div id="level-list">
+                    <!-- Níveis via JS -->
+                </div>
+                <button id="close-levels">VOLTAR</button>
+            </div>
+
+            <div id="level-win-screen" class="overlay hidden">
+                <h2 style="color: var(--neon-yellow);">MISSÃO CUMPRIDA!</h2>
+                <div class="final-score">PONTUAÇÃO: <span id="win-score-value">0</span></div>
+                <div class="coins-earned">MOEDAS BÔNUS: <span id="win-coins-value">0</span></div>
+                <div class="button-group">
+                    <button id="next-level-button">PRÓXIMO NÍVEL</button>
+                    <button id="win-home-button">MENU</button>
+                </div>
+            </div>
         </div>
     </div>
-    <!-- Forçando a leitura de um novo arquivo para limpar o cache de preços -->
     <script src="./bird.js"></script>
 </body>
 </html>
