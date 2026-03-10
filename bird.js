@@ -10,6 +10,7 @@ const shopScreen = document.getElementById('shop-screen');
 const startButton = document.getElementById('start-button');
 const restartButton = document.getElementById('restart-button');
 const shopButton = document.getElementById('shop-button');
+const homeShopButton = document.getElementById('home-shop-button');
 const closeShopButton = document.getElementById('close-shop');
 const skinListContainer = document.getElementById('skin-list');
 const shopCoinValue = document.getElementById('shop-coin-value');
@@ -344,5 +345,22 @@ window.processSkinAction = function(skinId) {
 
 startButton.addEventListener('click', startGame);
 restartButton.addEventListener('click', startGame);
-shopButton.addEventListener('click', () => { gameOverScreen.classList.add('hidden'); shopScreen.classList.remove('hidden'); updateShop(); });
-closeShopButton.addEventListener('click', () => { shopScreen.classList.add('hidden'); gameOverScreen.classList.remove('hidden'); });
+
+const openShop = () => {
+    startScreen.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+    shopScreen.classList.remove('hidden');
+    updateShop();
+};
+
+shopButton.addEventListener('click', openShop);
+homeShopButton.addEventListener('click', openShop);
+
+closeShopButton.addEventListener('click', () => {
+    shopScreen.classList.add('hidden');
+    if (!isPlaying) {
+        startScreen.classList.remove('hidden');
+    } else {
+        gameOverScreen.classList.remove('hidden');
+    }
+});

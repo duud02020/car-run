@@ -28,7 +28,10 @@
             <div id="start-screen" class="overlay">
                 <h1>FLAPPY CAR</h1>
                 <p>Use ESPAÇO ou CLIQUE para voar entre os canos neon!</p>
-                <button id="start-button">INICIAR VOO</button>
+                <div class="button-group">
+                    <button id="start-button">INICIAR VOO</button>
+                    <button id="home-shop-button">AVIÁRIO</button>
+                </div>
                 <div class="controls-hint">
                     <span>ESPAÇO / CLIQUE</span>
                     <span>W / SETA CIMA</span>
@@ -41,12 +44,12 @@
                 <div class="coins-earned">MOEDAS: <span id="coins-earned-value">0</span></div>
                 <div class="button-group">
                     <button id="restart-button">TENTAR DE NOVO</button>
-                    <button id="shop-button">GARAGEM</button>
+                    <button id="shop-button">AVIÁRIO</button>
                 </div>
             </div>
 
             <div id="shop-screen" class="overlay hidden">
-                <h2>GARAGEM NEON</h2>
+                <h2>AVIÁRIO NEON</h2>
                 <div class="current-coins">SUAS MOEDAS: <span id="shop-coin-value">0</span></div>
                 <div id="skin-list">
                     <!-- Skins via JS -->
