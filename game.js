@@ -118,15 +118,22 @@ class Coin {
     }
 
     draw() {
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 20;
         ctx.shadowColor = this.color;
+        
+        // Círculo principal dourado
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size/2, 0, Math.PI * 2);
         ctx.fill();
         
+        // Brilho central para destacar
         ctx.fillStyle = 'white';
-        ctx.font = '10px bold Orbitron';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size/4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = 'bold 12px Orbitron';
         ctx.textAlign = 'center';
         ctx.fillText('$', this.x, this.y + 4);
         ctx.shadowBlur = 0;
@@ -153,7 +160,8 @@ class Particle {
 
 function spawnEntities() {
     if (frameCount % 60 === 0) obstacles.push(new Obstacle());
-    if (frameCount % 90 === 0) targetCoins.push(new Coin());
+    // Moedas aparecem com mais frequência (a cada 45 frames)
+    if (frameCount % 45 === 0) targetCoins.push(new Coin());
 }
 
 function updatePlayer() {
