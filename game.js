@@ -20,11 +20,15 @@ let score = 0;
 let coins = parseInt(localStorage.getItem('carRunCoins')) || 0;
 let coinsInMatch = 0;
 let animationId;
-let speed = 5;
+let speed = 3.5; // Velocidade dos canos
 let obstacles = [];
 let targetCoins = []; 
 let particles = [];
 let frameCount = 0;
+
+// Physics for Flappy Mechanics
+const gravity = 0.25;
+const jumpForce = -6;
 
 // Skins & Shop
 const skins = [
@@ -39,11 +43,11 @@ let ownedSkins = JSON.parse(localStorage.getItem('carRunOwnedSkins')) || ['defau
 let activeSkinId = localStorage.getItem('carRunActiveSkin') || 'default';
 
 const player = {
-    x: 100,
+    x: 150,
     y: 100,
+    velocity: 0,
     size: 40,
     color: skins.find(s => s.id === activeSkinId).color,
-    targetY: 100,
     trail: []
 };
 
@@ -57,51 +61,74 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-window.addEventListener('keydown', (e) => {
+// Input for Flappy
+function jump() {
     if (!isPlaying) return;
-    const step = 80;
-    if (e.key === 'ArrowUp' || e.key === 'w') player.targetY -= step;
-    if (e.key === 'ArrowDown' || e.key === 's') player.targetY += step;
-    player.targetY = Math.max(50, Math.min(canvas.height - 50, player.targetY));
+    player.velocity = jumpForce;
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w') {
+        jump();
+        e.preventDefault();
+    }
 });
 
-class Obstacle {
+canvas.addEventListener('mousedown', jump);
+canvas.addEventListener('touchstart', (e) => {
+    jump();
+    e.preventDefault();
+}, { passive: false });
+
+class PipeObstacle {
     constructor() {
-        this.width = 60;
-        this.height = 40;
+        this.width = 80;
+        this.gap = 180; // Espaço entre os canos
         this.x = canvas.width;
-        this.y = Math.random() * (canvas.height - this.height);
+        // Altura mínima e máxima para o cano superior
+        const minPipeHeight = 50;
+        const maxPipeHeight = canvas.height - this.gap - minPipeHeight;
+        this.topHeight = Math.random() * (maxPipeHeight - minPipeHeight) + minPipeHeight;
+        this.bottomY = this.topHeight + this.gap;
         this.color = '#ff007f';
-        this.movesY = Math.random() > 0.3;
-        this.speedY = this.movesY ? (Math.random() > 0.5 ? 1 : -1) : 0;
+        this.passed = false;
     }
 
     update() {
         this.x -= speed;
-        if (this.movesY) {
-            this.y += this.speedY;
-            if (this.y <= 0 || this.y >= canvas.height - this.height) this.speedY *= -1;
-        }
     }
 
     draw() {
+        ctx.save();
         ctx.shadowBlur = 15;
         ctx.shadowColor = this.color;
         ctx.fillStyle = this.color;
+        
+        // Cano Superior
         ctx.beginPath();
-        ctx.roundRect(this.x, this.y, this.width, this.height, 5);
+        ctx.roundRect(this.x, 0, this.width, this.topHeight, [0, 0, 5, 5]);
         ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
-        ctx.fillRect(this.x + 10, this.y + 10, 20, 5);
-        ctx.shadowBlur = 0;
+
+        // Cano Inferior
+        ctx.beginPath();
+        ctx.roundRect(this.x, this.bottomY, this.width, canvas.height - this.bottomY, [5, 5, 0, 0]);
+        ctx.fill();
+
+        // Linhas de detalhe neon
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.x + 10, 0, 5, this.topHeight);
+        ctx.strokeRect(this.x + 10, this.bottomY, 5, canvas.height - this.bottomY);
+        
+        ctx.restore();
     }
 }
 
 class Coin {
-    constructor() {
-        this.size = 25; // Moedas maiores
-        this.x = canvas.width;
-        this.y = Math.random() * (canvas.height - this.size);
+    constructor(x, y) {
+        this.size = 25;
+        this.x = x + 40; // Centralizado no cano
+        this.y = y; // No meio do gap
         this.color = '#f8ff00';
     }
 
@@ -113,23 +140,18 @@ class Coin {
         ctx.save();
         ctx.shadowBlur = 30;
         ctx.shadowColor = this.color;
-        
-        // Círculo principal dourado
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size/2, 0, Math.PI * 2);
         ctx.fill();
-        
-        // Brilho central intenso (Branco)
         ctx.fillStyle = 'white';
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size/4, 0, Math.PI * 2);
         ctx.fill();
-
         ctx.fillStyle = '#000';
-        ctx.font = 'bold 14px Orbitron';
+        ctx.font = 'bold 12px Orbitron';
         ctx.textAlign = 'center';
-        ctx.fillText('$', this.x, this.y + 5);
+        ctx.fillText('$', this.x, this.y + 4);
         ctx.restore();
     }
 }
@@ -154,47 +176,73 @@ class Particle {
 }
 
 function spawnEntities() {
-    if (frameCount % 60 === 0) obstacles.push(new Obstacle());
-    if (frameCount % 40 === 0) targetCoins.push(new Coin()); // A cada 40 frames (MUITO FREQUENTE)
+    if (frameCount % 120 === 0) {
+        const pipe = new PipeObstacle();
+        obstacles.push(pipe);
+        // Spawn moeda no meio do cano
+        targetCoins.push(new Coin(pipe.x, pipe.topHeight + pipe.gap/2));
+    }
 }
 
 function updatePlayer() {
-    player.y += (player.targetY - player.y) * 0.15;
+    // Gravity physics
+    player.velocity += gravity;
+    player.y += player.velocity;
+
+    // Boundary check
+    if (player.y + player.size/4 > canvas.height) {
+        player.y = canvas.height - player.size/4;
+        gameOver();
+    }
+    if (player.y - player.size/4 < 0) {
+        player.y = player.size/4;
+        player.velocity = 0;
+    }
+
     player.trail.unshift({ x: player.x, y: player.y });
-    if (player.trail.length > 10) player.trail.pop();
+    if (player.trail.length > 8) player.trail.pop();
 }
 
 function drawPlayer() {
     ctx.save();
+    // Tilt car based on velocity
+    ctx.translate(player.x, player.y);
+    ctx.rotate(Math.min(Math.max(player.velocity * 0.05, -0.5), 0.5));
+    
     player.trail.forEach((p, i) => {
-        ctx.globalAlpha = 0.4 - (i / player.trail.length) * 0.4;
+        ctx.globalAlpha = 0.3 - (i / player.trail.length) * 0.3;
         ctx.fillStyle = player.color;
-        ctx.fillRect(p.x - player.size/2, p.y - player.size/4, player.size * (1 - i/10), player.size/2);
+        ctx.fillRect(-player.size/2 - (i*5), -player.size/4, player.size, player.size/2);
     });
+    
     ctx.globalAlpha = 1;
     ctx.shadowBlur = 20; ctx.shadowColor = player.color;
     ctx.fillStyle = 'white';
-    ctx.beginPath(); ctx.roundRect(player.x - player.size/2, player.y - player.size/4, player.size, player.size/2, 5); ctx.fill();
-    ctx.fillStyle = player.color; ctx.fillRect(player.x - player.size/2, player.y - player.size/4, 5, player.size/2);
-    ctx.fillStyle = '#111'; ctx.fillRect(player.x, player.y - player.size/8, 10, player.size/4);
+    ctx.beginPath(); ctx.roundRect(-player.size/2, -player.size/4, player.size, player.size/2, 5); ctx.fill();
+    ctx.fillStyle = player.color; ctx.fillRect(-player.size/2, -player.size/4, 5, player.size/2);
+    ctx.fillStyle = '#111'; ctx.fillRect(0, -player.size/8, 10, player.size/4);
     ctx.strokeStyle = player.color; ctx.lineWidth = 2; ctx.stroke();
     ctx.restore();
 }
 
 function checkCollision(obj, isCoin = false) {
-    const pWidth = player.size;
-    const pHeight = player.size / 2;
-    const padding = isCoin ? 20 : 0; // Padding gigante para moedas
-    
-    const objW = isCoin ? obj.size : (obj.width || 0);
-    const objH = isCoin ? obj.size : (obj.height || 0);
+    if (isCoin) {
+        const dist = Math.hypot(player.x - obj.x, player.y - obj.y);
+        return dist < (player.size/2 + obj.size/2 + 10);
+    } else {
+        // Collision with pipes
+        const pLeft = player.x - player.size/2 + 5;
+        const pRight = player.x + player.size/2 - 5;
+        const pTop = player.y - player.size/4 + 5;
+        const pBottom = player.y + player.size/4 - 5;
 
-    return (
-        player.x - pWidth/2 < obj.x + objW + padding &&
-        player.x + pWidth/2 > obj.x - padding &&
-        player.y - pHeight/4 < obj.y + objH + padding &&
-        player.y + pHeight/4 > obj.y - padding
-    );
+        // Top pipe
+        if (pRight > obj.x && pLeft < obj.x + obj.width && pTop < obj.topHeight) return true;
+        // Bottom pipe
+        if (pRight > obj.x && pLeft < obj.x + obj.width && pBottom > obj.bottomY) return true;
+        
+        return false;
+    }
 }
 
 function createExplosion(x, y, color) {
@@ -205,9 +253,11 @@ function gameLoop() {
     if (!isPlaying) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Grid
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    // Grid scrolling effect
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
     ctx.beginPath();
+    const scrollOffset = (frameCount * speed) % 40;
+    for (let i = 0; i < canvas.width + 40; i += 40) { ctx.moveTo(i - scrollOffset, 0); ctx.lineTo(i - scrollOffset, canvas.height); }
     for (let i = 0; i < canvas.height; i += 40) { ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); }
     ctx.stroke();
 
@@ -218,20 +268,21 @@ function gameLoop() {
     obstacles.forEach((obs, index) => {
         obs.update(); obs.draw();
         if (checkCollision(obs)) gameOver();
-        if (obs.x + obs.width < 0) {
-            obstacles.splice(index, 1);
-            score += 10;
+        
+        if (!obs.passed && obs.x + obs.width < player.x) {
+            obs.passed = true;
+            score += 1; // Ponto estilo flappy
             scoreElement.innerText = score.toString().padStart(4, '0');
-            if (score % 100 === 0) speed += 0.2;
         }
+        
+        if (obs.x + obs.width < 0) obstacles.splice(index, 1);
     });
 
     targetCoins.forEach((c, index) => {
         c.update(); c.draw();
         if (checkCollision(c, true)) {
             targetCoins.splice(index, 1);
-            coinsInMatch++;
-            coins++;
+            coinsInMatch++; coins++;
             coinElement.innerText = coins;
             localStorage.setItem('carRunCoins', coins);
         }
@@ -244,9 +295,9 @@ function gameLoop() {
 }
 
 function startGame() {
-    isPlaying = true; score = 0; speed = 5; frameCount = 0; coinsInMatch = 0;
+    isPlaying = true; score = 0; frameCount = 0; coinsInMatch = 0;
     obstacles = []; targetCoins = []; particles = [];
-    player.y = canvas.height / 2; player.targetY = player.y;
+    player.y = canvas.height / 2; player.velocity = 0;
     scoreElement.innerText = '0000';
     startScreen.classList.add('hidden'); gameOverScreen.classList.add('hidden'); shopScreen.classList.add('hidden');
     resize();
@@ -254,6 +305,7 @@ function startGame() {
 }
 
 function gameOver() {
+    if (!isPlaying) return;
     isPlaying = false;
     cancelAnimationFrame(animationId);
     createExplosion(player.x, player.y, player.color);
@@ -264,7 +316,6 @@ function gameOver() {
     }, 500);
 }
 
-// Shop
 function updateShop() {
     shopCoinValue.innerText = coins;
     skinListContainer.innerHTML = '';
